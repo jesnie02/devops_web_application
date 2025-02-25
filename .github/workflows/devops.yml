@@ -35,7 +35,19 @@ jobs:
           generateReleaseNotes: true
           body: |
             This release includes the following container image:
-            http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
+            http://ghcr.io/jesnie02/devops_web_application:${{ steps.semver-app.outputs.version }}
+          makeLatest: legacy
+          omitBody: false
+          omitBodyDuringUpdate: false
+          omitDraftDuringUpdate: false
+          omitName: false
+          omitNameDuringUpdate: false
+          omitPrereleaseDuringUpdate: false
+          removeArtifacts: false
+          replacesArtifacts: true
+          skipIfReleaseExists: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+          updateOnlyUnreleased: false
 
       - name: Application Version
         id: semver-app
