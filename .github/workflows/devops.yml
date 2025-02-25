@@ -12,3 +12,26 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        
+      - name: log in to GHCR
+        uses: docker/login-action@v2
+        with:
+            registry: ghcr.io
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+            
+      - name: Build and push Docker image
+        run:
+          docker build -t ghcr.io/${{ github.repository }}:staging \
+                       -t ghcr.io/${{ github.repository }}:${{ steps.semver.outputs.version }} \
+                       -f DevOpsWebApplication/Dockerfile .
+          docker push ghcr.io/${{ github.repository }} --all-tags
+        
+      - name: Create release notes
+        uses: ncipollo/release-action@v1
+        with:
+            tag: ${{ github.run_id }}
+            generateReleaseNotes: true
+        body: |
+            This release includes the following container image:
+            http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
