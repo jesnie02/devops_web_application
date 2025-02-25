@@ -41,11 +41,11 @@ jobs:
         id: create-release-notes
         uses: ncipollo/release-action@v1
         with:
-          tag: ${{ steps.semver-app.outputs.version }}
+          tag: ${{ steps.semver-app.outputs.version }}-${{ github.run_id }}
           generateReleaseNotes: true
           body: |
             This release includes the following container image:
             http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
-
+      
       - name: Display Version
         run: echo "Generated version is ${{ steps.semver-app.outputs.version }}"
