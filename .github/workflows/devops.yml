@@ -27,6 +27,12 @@ jobs:
                        -f DevOpsWebApplication/Dockerfile .
           docker push ghcr.io/${{ github.repository }} --all-tags
 
+      - name: Application Version
+        id: semver-app
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          bump_each_commit: true
+
       - name: Create release notes
         id: create-release-notes
         uses: ncipollo/release-action@v1
@@ -35,25 +41,7 @@ jobs:
           generateReleaseNotes: true
           body: |
             This release includes the following container image:
-            http://ghcr.io/jesnie02/devops_web_application:${{ steps.semver-app.outputs.version }}
-          makeLatest: legacy
-          omitBody: false
-          omitBodyDuringUpdate: false
-          omitDraftDuringUpdate: false
-          omitName: false
-          omitNameDuringUpdate: false
-          omitPrereleaseDuringUpdate: false
-          removeArtifacts: false
-          replacesArtifacts: true
-          skipIfReleaseExists: false
-          token: ${{ secrets.GITHUB_TOKEN }}
-          updateOnlyUnreleased: false
-
-      - name: Application Version
-        id: semver-app
-        uses: paulhatch/semantic-version@v5.4.0
-        with:
-          bump_each_commit: true
+            http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
 
       - name: Display Version
         run: echo "Generated version is ${{ steps.semver-app.outputs.version }}"
