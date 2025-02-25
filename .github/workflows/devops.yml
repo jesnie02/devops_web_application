@@ -28,6 +28,7 @@ jobs:
           docker push ghcr.io/${{ github.repository }} --all-tags
 
       - name: Create release notes
+        id: semver-app
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.semver-app.outputs.version }}
@@ -36,3 +37,11 @@ jobs:
             This release includes the following container image:
             http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
             
+      - name: Application Version
+        id: semver-app
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          bump_each_commit: true
+          
+      - name: Display Version
+        run: echo "Generated version is ${{ steps.semver-app.outputs.version }}"
