@@ -77,21 +77,13 @@ jobs:
             
             
   deployment:
-    needs: delivery
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Get Version
-        id: semver-app
-        uses: paulhatch/semantic-version@v5.4.0
-        with:
-          bump_each_commit: true
 
       - name: Log in to GHCR
         uses: docker/login-action@v2
@@ -100,11 +92,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.MY_TOKEN }}
 
-      - name: Tag Production Image
+
+      - name: Pull Docker image
         run: |
-          docker pull ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
-          docker tag ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }} ghcr.io/${{ github.repository }}:production
-          docker push ghcr.io/${{ github.repository }}:production
+          docker pull ghcr.io/${{ github.repository }}:staging
 
       - name: Deliver Docker Compose file to production
         uses: appleboy/scp-action@v0.1.7
@@ -123,6 +114,5 @@ jobs:
           key: ${{ secrets.PRODUCTION_SERVER_SSH_KEY }}
           script: |
             cd dowa
-            TAG=production docker compose pull
-            docker compose down
-            TAG=production docker compose up -d
+            docker compose pull
+            docker compose up -d
