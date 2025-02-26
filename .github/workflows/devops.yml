@@ -36,6 +36,7 @@ jobs:
         uses: paulhatch/semantic-version@v5.4.0
         with:
           bump_each_commit: true
+          search_commit_body: true
 
       - name: Create release notes
         id: create-release-notes
