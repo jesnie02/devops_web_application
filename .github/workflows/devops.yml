@@ -75,7 +75,7 @@ jobs:
             docker compose pull
             docker compose up -d
   
-
+  
   deployment:
     needs: delivery
     runs-on: ubuntu-latest
@@ -87,18 +87,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get version from delivery job
-        id: semver-app
-        uses: paulhatch/semantic-version@v5.4.0
-        with:
-          bump_each_commit: true
-
       - name: Create production docker-compose.yml
         run: |
           cat > docker-compose.production.yml << EOL
           services:
             web:
-              image: ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]'):${{ steps.semver-app.outputs.version }}
+              image: ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]'):production
               ports:
                 - "80:8080"
           EOL
