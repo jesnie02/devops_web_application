@@ -17,6 +17,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Application Version
+        id: semver-app
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          bump_each_commit: true
+
       - name: Log in to GHCR
         uses: docker/login-action@v2
         with:
@@ -24,16 +30,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.MY_TOKEN }}
           
-      - name: Application Version
-        id: semver-app
-        uses: paulhatch/semantic-version@v5.4.0
-        with:
-          bump_each_commit: true
-          major_pattern: "BREAKING CHANGE:"
-          minor_pattern: "feat:"
-          version_format: "${major}.${minor}.${patch}-build${increment}"
-          search_commit_body: true
-          
+    
       - name: Build and Push Docker image
         run: |
           docker build \
