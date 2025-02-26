@@ -1,0 +1,5 @@
+﻿services:
+  web:
+    image: ghcr.io/jesnie02/devops_web_application:latest
+    ports:
+      - "80:8080"
