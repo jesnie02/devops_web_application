@@ -27,25 +27,24 @@ jobs:
       - name: Build and push Docker image
         run: |
           docker build -t ghcr.io/${{ github.repository }}:staging \
-                       -t ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }} \
+                       -t ghcr.io/${{ github.repository }}:${{ github.run_id }} \
                        -f DevOpsWebApplication/Dockerfile .
           docker push ghcr.io/${{ github.repository }} --all-tags
-
       - name: Application Version
         id: semver-app
         uses: paulhatch/semantic-version@v5.4.0
         with:
           bump_each_commit: true
+          search_commit_body: true
 
+      - name: Build and Push Docker image
+        run: |
+          docker build \
+          -t ghcr.io/${{ github.repository }}:staging \
+          -t ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }} \
+          -f DevOpsWebApplication/Dockerfile .
+          docker push ghcr.io/${{ github.repository }} --all-tags
 
-      - name: Create release notes
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ steps.semver-app.outputs.version }}
-          generateReleaseNotes: true
-          body: |
-            This release includes the following container image:
-            http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
 
       - name: Display Version
         run: echo "Generated version is ${{ steps.semver-app.outputs.version }}"
