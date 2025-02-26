@@ -23,7 +23,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.MY_TOKEN }}
-
+          
+      - name: Application Version
+        id: semver-app
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          bump_each_commit: true
+          
       - name: Build and Push Docker image
         run: |
           docker build \
@@ -33,12 +39,6 @@ jobs:
             .
           docker push ghcr.io/${{ github.repository }} --all-tags
      
-      - name: Application Version
-        id: semver-app
-        uses: paulhatch/semantic-version@v5.4.0
-        with:
-          bump_each_commit: true
-
       - name: Create release notes
         uses: ncipollo/release-action@v1
         with:
