@@ -123,5 +123,6 @@ jobs:
           key: ${{ secrets.PRODUCTION_SERVER_SSH_KEY }}
           script: |
             cd dowa
-            docker compose pull
-            docker compose up -d
+            TAG=production docker compose pull
+            docker compose down
+            TAG=production docker compose up -d

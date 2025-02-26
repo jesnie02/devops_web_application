@@ -3,3 +3,4 @@
       image: ghcr.io/jesnie02/devops_web_application:staging
       ports:
       - "8080:8080"
+        
