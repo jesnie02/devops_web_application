@@ -114,6 +114,6 @@ jobs:
           key: ${{ secrets.PRODUCTION_SERVER_SSH_KEY }}
           script: |
             cd dowa
-            mv docker-compose.production.yml docker-compose.yaml
+            mv docker-compose.production.yaml docker-compose.yaml
             docker compose pull
             docker compose up -d
