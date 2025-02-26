@@ -29,6 +29,10 @@ jobs:
         uses: paulhatch/semantic-version@v5.4.0
         with:
           bump_each_commit: true
+          major_pattern: "BREAKING CHANGE:"
+          minor_pattern: "feat:"
+          version_format: "${major}.${minor}.${patch}-build${increment}"
+          search_commit_body: true
           
       - name: Build and Push Docker image
         run: |
