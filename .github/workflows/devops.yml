@@ -5,13 +5,12 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-  packages: write
-
 jobs:
-  staging:
+  delivery:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Checkout repository
@@ -30,29 +29,30 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.MY_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set lowercase repository name
+        id: repo-name
+        run: echo "REPO_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Build and Push Docker image
         run: |
           docker build \
-            -t ghcr.io/${{ github.repository }}:staging \
-            -t ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }} \
+            -t ghcr.io/${{ env.REPO_NAME }}:staging \
+            -t ghcr.io/${{ env.REPO_NAME }}:${{ steps.semver-app.outputs.version }} \
+            -t ghcr.io/${{ env.REPO_NAME }}:production \
             -f DevOpsWebApplication/Dockerfile \
             .
-          docker push ghcr.io/${{ github.repository }} --all-tags    
+          docker push ghcr.io/${{ env.REPO_NAME }} --all-tags
 
       - name: Create release notes
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.semver-app.outputs.version }}
           generateReleaseNotes: true
-          allowUpdates: true
           body: |
             This release includes the following container image:
-            http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
-
-      - name: Display Version
-        run: echo "Generated version is ${{ steps.semver-app.outputs.version }}"
+            http://ghcr.io/${{ env.REPO_NAME }}:${{ steps.semver-app.outputs.version }}
 
       - name: Deliver Docker Compose file to staging
         uses: appleboy/scp-action@v0.1.7
@@ -60,7 +60,7 @@ jobs:
           host: ${{ vars.STAGING_SERVER_IP }}
           username: ${{ vars.STAGING_SERVER_USERNAME }}
           key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
-          source: "docker-compose.yaml"
+          source: "docker-compose.yml"
           target: dowa/
 
       - name: Run Docker Compose on staging server
@@ -73,24 +73,24 @@ jobs:
             cd dowa
             docker compose pull
             docker compose up -d
-  
-  production:
-    needs: staging
+
+  deployment:
+    needs: delivery
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: read
-
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create production docker-compose.production.yaml
+      - name: Create production docker-compose.yml
         run: |
-          cat > docker-compose.production.yaml << EOL
+          cat > docker-compose.production.yml << EOL
           services:
             web:
-              image: ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]'):${{ needs.staging.outputs.semver-app.outputs.version }}
+              image: ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]'):production
               ports:
                 - "80:8080"
           EOL
@@ -101,7 +101,7 @@ jobs:
           host: ${{ vars.PRODUCTION_SERVER_IP }}
           username: ${{ vars.PRODUCTION_SERVER_USERNAME }}
           key: ${{ secrets.PRODUCTION_SERVER_SSH_KEY }}
-          source: "docker-compose.production.yaml"
+          source: "docker-compose.production.yml"
           target: dowa/
 
       - name: Run Docker Compose on production server
@@ -112,6 +112,6 @@ jobs:
           key: ${{ secrets.PRODUCTION_SERVER_SSH_KEY }}
           script: |
             cd dowa
-            mv docker-compose.production.yaml docker-compose.yaml
+            mv docker-compose.production.yml docker-compose.yml
             docker compose pull
             docker compose up -d
