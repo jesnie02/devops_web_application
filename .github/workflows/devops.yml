@@ -87,9 +87,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create production docker-compose.yml
+      - name: Create production docker-compose.yaml
         run: |
-          cat > docker-compose.production.yml << EOL
+          cat > docker-compose.production.yaml << EOL
           services:
             web:
               image: ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]'):${{ needs.delivery.outputs.semver-app.outputs.version }}
@@ -114,6 +114,6 @@ jobs:
           key: ${{ secrets.PRODUCTION_SERVER_SSH_KEY }}
           script: |
             cd dowa
-            mv docker-compose.production.yml docker-compose.yml
+            mv docker-compose.production.yml docker-compose.yaml
             docker compose pull
             docker compose up -d
