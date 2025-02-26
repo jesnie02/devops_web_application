@@ -24,13 +24,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.MY_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and Push Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository }}:staging \
-                       -t ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }} \
-                       -f DevOpsWebApplication/Dockerfile .
+          docker build \
+            -t ghcr.io/${{ github.repository }}:staging \
+            -t ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }} \
+            -f DevOpsWebApplication/Dockerfile \
+            .
           docker push ghcr.io/${{ github.repository }} --all-tags
-     
      
       - name: Application Version
         id: semver-app
