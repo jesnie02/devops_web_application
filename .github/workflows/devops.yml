@@ -36,7 +36,7 @@ jobs:
         uses: paulhatch/semantic-version@v5.4.0
         with:
           bump_each_commit: true
-          
+
 
       - name: Create release notes
         uses: ncipollo/release-action@v1
@@ -46,7 +46,7 @@ jobs:
           body: |
             This release includes the following container image:
             http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
-      
+
       - name: Display Version
         run: echo "Generated version is ${{ steps.semver-app.outputs.version }}"
 
