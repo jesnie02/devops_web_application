@@ -38,16 +38,15 @@ jobs:
           bump_each_commit: true
           search_commit_body: true
 
-      - name: Create release notes
-        id: create-release-notes
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ steps.semver-app.outputs.version }}-${{ github.run_id }}
-          generateReleaseNotes: true
-          body: |
-            This release includes the following container image:
-            http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
-      
+      - name: Build and Push Docker image
+        run: |
+          docker build \
+          -t ghcr.io/${{ github.repository }}:staging \
+          -t ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }} \
+          -f DevOpsWebApplication/Dockerfile .
+          docker push ghcr.io/${{ github.repository }} --all-tags
+          
+          
       - name: Display Version
         run: echo "Generated version is ${{ steps.semver-app.outputs.version }}"
 
