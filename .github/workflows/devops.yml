@@ -30,7 +30,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.MY_TOKEN }}
           
-    
+      - name: Create release notes
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.semver-app.outputs.version }}
+          generateReleaseNotes: true
+          body: |
+            This release includes the following container image:
+            http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
+      
+      
       - name: Build and Push Docker image
         run: |
           docker build \
@@ -40,15 +49,7 @@ jobs:
             .
           docker push ghcr.io/${{ github.repository }} --all-tags
      
-      - name: Create release notes
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ steps.semver-app.outputs.version }}
-          generateReleaseNotes: true
-          body: |
-            This release includes the following container image:
-            http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
-
+   
       - name: Display Version
         run: echo "Generated version is ${{ steps.semver-app.outputs.version }}"
 
