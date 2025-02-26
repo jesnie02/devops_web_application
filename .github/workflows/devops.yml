@@ -1,4 +1,4 @@
-name: DevOps staging
+name: DevOps Workflow
 
 on:
   push:
@@ -10,13 +10,13 @@ permissions:
   packages: write
 
 jobs:
-  delivery:
+  staging:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with: 
+        with:
           fetch-depth: 0
 
       - name: Application Version
@@ -24,15 +24,14 @@ jobs:
         uses: paulhatch/semantic-version@v5.4.0
         with:
           bump_each_commit: true
-        
-        
+
       - name: Log in to GHCR
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.MY_TOKEN }}
-          
+
       - name: Build and Push Docker image
         run: |
           docker build \
@@ -41,7 +40,7 @@ jobs:
             -f DevOpsWebApplication/Dockerfile \
             .
           docker push ghcr.io/${{ github.repository }} --all-tags    
-          
+
       - name: Create release notes
         uses: ncipollo/release-action@v1
         with:
@@ -51,7 +50,7 @@ jobs:
           body: |
             This release includes the following container image:
             http://ghcr.io/${{ github.repository }}:${{ steps.semver-app.outputs.version }}
-      
+
       - name: Display Version
         run: echo "Generated version is ${{ steps.semver-app.outputs.version }}"
 
@@ -63,7 +62,7 @@ jobs:
           key: ${{ secrets.STAGING_SERVER_SSH_KEY }}
           source: "docker-compose.yaml"
           target: dowa/
-          
+
       - name: Run Docker Compose on staging server
         uses: appleboy/ssh-action@v1.2.1
         with:
@@ -74,10 +73,9 @@ jobs:
             cd dowa
             docker compose pull
             docker compose up -d
-            
-            
-  deployment:
-    needs: delivery
+  
+  production:
+    needs: staging
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -87,12 +85,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create production docker-compose.yaml
+      - name: Create production docker-compose.production.yaml
         run: |
           cat > docker-compose.production.yaml << EOL
           services:
             web:
-              image: ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]'):${{ needs.delivery.outputs.semver-app.outputs.version }}
+              image: ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]'):${{ needs.staging.outputs.semver-app.outputs.version }}
               ports:
                 - "80:8080"
           EOL
