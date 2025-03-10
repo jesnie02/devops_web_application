@@ -83,10 +83,17 @@ jobs:
       contents: read
       packages: read
 
+    # Husk følgende når du laver checkout :) Ellers kan du få problemer med semantisk versionering og andet.
+    # with:
+    #   fetch-depth: 0
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # En general tommelfinger-regel: Pipelines arbejder med kører, tester og pakker produktet, men manipulere ikke med det.
+      # At have en docker compose fil specifikt til produktionsmiljøet er en rigtig god idé - men hvorfor ikke skrive den ind i repositoriet via et commit? :)
+      # Desuden bruger du et tag, der hedder "production", men hvor stammer den fra?
+      # Lige nu vil den sandsynligvis fejle, fordi imaget ikke findes på serveren.
       - name: Create production docker-compose.yml
         run: |
           cat > docker-compose.production.yml << EOL
